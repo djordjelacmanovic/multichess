@@ -4,6 +4,7 @@ defmodule Multichess.Game.Board do
   alias Multichess.Game.Position
   alias Multichess.Game.Queen
   alias Multichess.Game.Bishop
+  alias Multichess.Game.Pawn
 
   def moves(board, pos, previous_moves \\ []) do
     %{type: type} = piece(board, pos)
@@ -20,6 +21,9 @@ defmodule Multichess.Game.Board do
 
       :queen ->
         Queen.moves(board, pos)
+
+      :pawn ->
+        Pawn.moves(board, pos, previous_moves)
     end
   end
 
