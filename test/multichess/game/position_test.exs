@@ -2,6 +2,23 @@ defmodule Multichess.Game.Position.Test do
   alias Multichess.Game.Position
   use ExUnit.Case, async: true
 
+  describe "parse" do
+    test "parsing correct string returns {:ok, pos}" do
+      {:ok, pos} = Position.parse("1,2")
+      assert pos == {1, 2}
+    end
+
+    test "parsing correct string returns {:error}" do
+      assert {:error, "invalid position string"} == Position.parse("-1,2")
+    end
+  end
+
+  describe "to_string" do
+    test "generates correct string" do
+      assert "1,2" == Position.to_string({1, 2})
+    end
+  end
+
   describe "valid?" do
     test "non integer row is not valid" do
       refute Position.valid?({'1', 4})
