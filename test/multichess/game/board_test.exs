@@ -10,6 +10,46 @@ defmodule Multichess.Game.Board.Test do
     end
   end
 
+  describe "is_attacked?" do
+    test "returns true if piece is attacked" do
+      board = %{
+        {1, 0} => %{type: :pawn, colour: :white},
+        {1, 7} => %{type: :rook, colour: :black}
+      }
+
+      assert Board.is_attacked?({1, 0}, board)
+    end
+
+    test "returns false if piece is not attacked" do
+      board = %{
+        {1, 0} => %{type: :pawn, colour: :white},
+        {1, 7} => %{type: :rook, colour: :white}
+      }
+
+      refute Board.is_attacked?({1, 0}, board)
+    end
+  end
+
+  describe "is_king_checked?" do
+    test "returns true if king is under attack" do
+      assert %{
+               {7, 0} => %{type: :rook, colour: :white},
+               {4, 0} => %{type: :king, colour: :white},
+               {4, 5} => %{type: :rook, colour: :black}
+             }
+             |> Board.is_king_checked?(:white)
+    end
+
+    test "returns true if king is not under attack" do
+      refute %{
+               {7, 0} => %{type: :rook, colour: :white},
+               {4, 0} => %{type: :king, colour: :white},
+               {4, 5} => %{type: :bishop, colour: :black}
+             }
+             |> Board.is_king_checked?(:white)
+    end
+  end
+
   describe "move" do
     test "moves the piece" do
       piece = %{type: :bishop, colour: :white}
@@ -30,6 +70,90 @@ defmodule Multichess.Game.Board.Test do
       start_p = {1, 1}
       end_p = {1, 2}
       %{start_p: ^start_p, end_p: ^end_p} = Board.initial_state() |> Board.move({1, 1}, {1, 2})
+    end
+
+    test "promotes the white pawn if applicable" do
+      %{board: board} =
+        %{
+          {0, 6} => %{type: :pawn, colour: :white}
+        }
+        |> Board.move({0, 6}, {0, 7})
+
+      assert board == %{{0, 7} => %{type: :queen, colour: :white}}
+    end
+
+    test "promotes the black pawn if applicable" do
+      %{board: board} =
+        %{
+          {0, 1} => %{type: :pawn, colour: :black}
+        }
+        |> Board.move({0, 1}, {0, 0})
+
+      assert board == %{{0, 0} => %{type: :queen, colour: :black}}
+    end
+
+    test "performs white queenside castle" do
+      %{board: board} =
+        %{
+          {0, 0} => %{type: :rook, colour: :white},
+          {4, 0} => %{type: :king, colour: :white},
+          {7, 0} => %{type: :rook, colour: :white}
+        }
+        |> Board.move({4, 0}, {2, 0})
+
+      assert board == %{
+               {3, 0} => %{type: :rook, colour: :white},
+               {2, 0} => %{type: :king, colour: :white},
+               {7, 0} => %{type: :rook, colour: :white}
+             }
+    end
+
+    test "performs white kingside castle" do
+      %{board: board} =
+        %{
+          {0, 0} => %{type: :rook, colour: :white},
+          {4, 0} => %{type: :king, colour: :white},
+          {7, 0} => %{type: :rook, colour: :white}
+        }
+        |> Board.move({4, 0}, {6, 0})
+
+      assert board == %{
+               {0, 0} => %{type: :rook, colour: :white},
+               {6, 0} => %{type: :king, colour: :white},
+               {5, 0} => %{type: :rook, colour: :white}
+             }
+    end
+
+    test "performs black queenside castle" do
+      %{board: board} =
+        %{
+          {0, 7} => %{type: :rook, colour: :black},
+          {4, 7} => %{type: :king, colour: :black},
+          {7, 7} => %{type: :rook, colour: :black}
+        }
+        |> Board.move({4, 7}, {2, 7})
+
+      assert board == %{
+               {3, 7} => %{type: :rook, colour: :black},
+               {2, 7} => %{type: :king, colour: :black},
+               {7, 7} => %{type: :rook, colour: :black}
+             }
+    end
+
+    test "performs black kingside castle" do
+      %{board: board} =
+        %{
+          {0, 7} => %{type: :rook, colour: :black},
+          {4, 7} => %{type: :king, colour: :black},
+          {7, 7} => %{type: :rook, colour: :black}
+        }
+        |> Board.move({4, 7}, {6, 7})
+
+      assert board == %{
+               {0, 7} => %{type: :rook, colour: :black},
+               {6, 7} => %{type: :king, colour: :black},
+               {5, 7} => %{type: :rook, colour: :black}
+             }
     end
   end
 

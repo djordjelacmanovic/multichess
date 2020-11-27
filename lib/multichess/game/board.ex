@@ -5,6 +5,7 @@ defmodule Multichess.Game.Board do
   alias Multichess.Game.Queen
   alias Multichess.Game.Bishop
   alias Multichess.Game.Pawn
+  alias Multichess.Game.King
 
   def moves(board, pos, previous_moves \\ []) do
     %{type: type} = piece(board, pos)
@@ -24,21 +25,77 @@ defmodule Multichess.Game.Board do
 
       :pawn ->
         Pawn.moves(board, pos, previous_moves)
+
+      :king ->
+        King.moves(board, pos, previous_moves)
     end
+  end
+
+  def find(board, %{type: type, colour: colour}) do
+    board
+    |> Enum.filter(fn {_, piece} -> match?(%{type: ^type, colour: ^colour}, piece) end)
+  end
+
+  def is_king_checked?(board, colour) do
+    board
+    |> find(%{type: :king, colour: colour})
+    |> List.first()
+    |> (fn {p, _} -> p end).()
+    |> is_attacked?(board)
+  end
+
+  # bruteforce, could be better
+  def is_attacked?(pos, board) do
+    board
+    |> Enum.any?(fn
+      # self attack not possible + prevent infinite loop
+      {^pos, _} ->
+        false
+
+      {p, _} ->
+        moves(board, p) |> Enum.any?(&(pos == &1))
+    end)
   end
 
   def move(board, start_p, end_p) do
     {piece, board} = Map.pop(board, start_p)
     {captured, board} = Map.pop(board, end_p)
+    board = Map.put(board, end_p, piece)
+
+    board =
+      cond do
+        is_castle?(piece, start_p, end_p) ->
+          board |> castle_rook(end_p) |> Map.get(:board)
+
+        should_promote_pawn?(piece, end_p) ->
+          promote_pawn(board, piece, end_p)
+
+        true ->
+          board
+      end
 
     %{
       start_p: start_p,
       end_p: end_p,
-      board: Map.put(board, end_p, piece),
+      board: board,
       piece: piece,
       captured: captured
     }
   end
+
+  def should_promote_pawn?(%{type: :pawn, colour: :white}, {_, 7}), do: true
+  def should_promote_pawn?(%{type: :pawn, colour: :black}, {_, 0}), do: true
+  def should_promote_pawn?(_, _), do: false
+
+  def promote_pawn(board, %{type: :pawn, colour: colour}, pos) do
+    Map.put(board, pos, %{type: :queen, colour: colour})
+  end
+
+  def is_castle?(%{type: :king}, {4, _}, {end_c, _}), do: end_c == 6 or end_c == 2
+  def is_castle?(_, _, _), do: false
+
+  def castle_rook(board, {c, r}) when c == 2, do: board |> move({0, r}, {3, r})
+  def castle_rook(board, {c, r}) when c == 6, do: board |> move({7, r}, {5, r})
 
   def piece(board, pos) do
     board[pos]

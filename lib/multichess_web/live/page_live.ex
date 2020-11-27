@@ -3,7 +3,11 @@ defmodule MultichessWeb.PageLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, query: "", results: %{}, counter: 0)}
+    if connected?(socket) do
+      :timer.send_interval(1000, self(), :tick)
+    end
+
+    {:ok, assign(socket, query: "", results: %{}, counter: 0) |> assign_current_time()}
   end
 
   @impl true
@@ -28,6 +32,23 @@ defmodule MultichessWeb.PageLive do
   @impl true
   def handle_event("incr", _, socket) do
     {:noreply, socket |> assign(counter: socket.assigns[:counter] + 1)}
+  end
+
+  @impl true
+  def handle_info(:tick, socket) do
+    socket = assign_current_time(socket)
+
+    {:noreply, socket}
+  end
+
+  def assign_current_time(socket) do
+    now =
+      Time.utc_now()
+      |> Time.to_string()
+      |> String.split(".")
+      |> hd
+
+    assign(socket, now: now)
   end
 
   defp search(query) do
