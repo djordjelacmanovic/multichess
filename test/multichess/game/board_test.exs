@@ -155,6 +155,36 @@ defmodule Multichess.Game.Board.Test do
                {5, 7} => %{type: :rook, colour: :black}
              }
     end
+
+    test "performs white en passant" do
+      %{board: board, captured: captured} =
+        %{
+          {3, 4} => %{type: :pawn, colour: :white},
+          {2, 4} => %{type: :pawn, colour: :black}
+        }
+        |> Board.move({3, 4}, {2, 5})
+
+      assert board == %{
+               {2, 5} => %{type: :pawn, colour: :white}
+             }
+
+      assert captured == %{type: :pawn, colour: :black}
+    end
+
+    test "performs black en passant" do
+      %{board: board, captured: captured} =
+        %{
+          {3, 3} => %{type: :pawn, colour: :black},
+          {2, 3} => %{type: :pawn, colour: :white}
+        }
+        |> Board.move({3, 3}, {2, 2})
+
+      assert board == %{
+               {2, 2} => %{type: :pawn, colour: :black}
+             }
+
+      assert captured == %{type: :pawn, colour: :white}
+    end
   end
 
   describe "initial state" do

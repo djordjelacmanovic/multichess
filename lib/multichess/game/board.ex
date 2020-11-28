@@ -62,16 +62,12 @@ defmodule Multichess.Game.Board do
     {captured, board} = Map.pop(board, end_p)
     board = Map.put(board, end_p, piece)
 
-    board =
-      cond do
-        is_castle?(piece, start_p, end_p) ->
-          board |> castle_rook(end_p) |> Map.get(:board)
-
-        should_promote_pawn?(piece, end_p) ->
-          promote_pawn(board, piece, end_p)
-
-        true ->
-          board
+    %{board: board, captured: captured} =
+      with %{board: board, spec_capt: spec_capt} <-
+             special_move_if_needed(board, piece, captured, start_p, end_p) do
+        %{board: board, captured: spec_capt}
+      else
+        %{board: board} -> %{board: board, captured: captured}
       end
 
     %{
@@ -83,19 +79,67 @@ defmodule Multichess.Game.Board do
     }
   end
 
-  def should_promote_pawn?(%{type: :pawn, colour: :white}, {_, 7}), do: true
-  def should_promote_pawn?(%{type: :pawn, colour: :black}, {_, 0}), do: true
-  def should_promote_pawn?(_, _), do: false
+  defp special_move_if_needed(board, piece, captured, start_p, end_p) do
+    cond do
+      is_castle?(piece, start_p, end_p) ->
+        board |> castle_rook(end_p)
 
-  def promote_pawn(board, %{type: :pawn, colour: colour}, pos) do
-    Map.put(board, pos, %{type: :queen, colour: colour})
+      is_en_passant?(piece, captured, start_p, end_p) ->
+        board |> en_passant(piece, end_p)
+
+      should_promote_pawn?(piece, end_p) ->
+        promote_pawn(board, piece, end_p)
+
+      true ->
+        %{board: board}
+    end
   end
 
-  def is_castle?(%{type: :king}, {4, _}, {end_c, _}), do: end_c == 6 or end_c == 2
-  def is_castle?(_, _, _), do: false
+  defp should_promote_pawn?(%{type: :pawn, colour: :white}, {_, 7}), do: true
+  defp should_promote_pawn?(%{type: :pawn, colour: :black}, {_, 0}), do: true
+  defp should_promote_pawn?(_, _), do: false
 
-  def castle_rook(board, {c, r}) when c == 2, do: board |> move({0, r}, {3, r})
-  def castle_rook(board, {c, r}) when c == 6, do: board |> move({7, r}, {5, r})
+  defp promote_pawn(board, %{type: :pawn, colour: colour}, pos) do
+    %{board: Map.put(board, pos, %{type: :queen, colour: colour})}
+  end
+
+  defp is_castle?(%{type: :king}, {4, _}, {end_c, _}), do: end_c == 6 or end_c == 2
+  defp is_castle?(_, _, _), do: false
+
+  defp castle_rook(board, {c, r}) when c == 2, do: board |> move({0, r}, {3, r})
+  defp castle_rook(board, {c, r}) when c == 6, do: board |> move({7, r}, {5, r})
+
+  defp is_en_passant?(
+         %{type: :pawn, colour: :white},
+         nil,
+         {start_c, 4},
+         {end_c, 5}
+       )
+       when end_c == start_c + 1 or end_c == start_c - 1,
+       do: true
+
+  defp is_en_passant?(
+         %{type: :pawn, colour: :black},
+         nil,
+         {start_c, 3},
+         {end_c, 2}
+       )
+       when end_c == start_c - 1 or end_c == start_c + 1,
+       do: true
+
+  defp is_en_passant?(_, _, _, _), do: false
+
+  defp en_passant(board, %{type: :pawn, colour: :white}, {end_c, _}) do
+    board
+    |> Map.delete({end_c, 4})
+    |> (&Map.put(%{spec_capt: %{type: :pawn, colour: :black}}, :board, &1)).()
+  end
+
+  defp en_passant(board, %{type: :pawn, colour: :black}, {end_c, _}) do
+    board
+    |> Map.delete({end_c, 3})
+    |> (&Map.put(%{spec_capt: %{type: :pawn, colour: :white}}, :board, &1)).()
+  end
 
   def piece(board, pos) do
     board[pos]
