@@ -205,14 +205,14 @@ defmodule Multichess.Game.Board do
       {5, 0} => make_piece(:bishop, :white),
       {6, 0} => make_piece(:knight, :white),
       {7, 0} => make_piece(:rook, :white),
-      {0, 7} => make_piece(:rook, :white),
-      {1, 7} => make_piece(:knight, :white),
-      {2, 7} => make_piece(:bishop, :white),
-      {3, 7} => make_piece(:queen, :white),
-      {4, 7} => make_piece(:king, :white),
-      {5, 7} => make_piece(:bishop, :white),
-      {6, 7} => make_piece(:knight, :white),
-      {7, 7} => make_piece(:rook, :white)
+      {0, 7} => make_piece(:rook, :black),
+      {1, 7} => make_piece(:knight, :black),
+      {2, 7} => make_piece(:bishop, :black),
+      {3, 7} => make_piece(:queen, :black),
+      {4, 7} => make_piece(:king, :black),
+      {5, 7} => make_piece(:bishop, :black),
+      {6, 7} => make_piece(:knight, :black),
+      {7, 7} => make_piece(:rook, :black)
     }
 
     s = Enum.reduce(0..7, s, fn i, acc -> Map.put(acc, {i, 1}, make_piece(:pawn, :white)) end)

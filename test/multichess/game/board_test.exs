@@ -219,14 +219,14 @@ defmodule Multichess.Game.Board.Test do
       {5, 6} => %{colour: :black, type: :pawn},
       {6, 6} => %{colour: :black, type: :pawn},
       {7, 6} => %{colour: :black, type: :pawn},
-      {0, 7} => %{colour: :white, type: :rook},
-      {1, 7} => %{colour: :white, type: :knight},
-      {2, 7} => %{colour: :white, type: :bishop},
-      {3, 7} => %{colour: :white, type: :queen},
-      {4, 7} => %{colour: :white, type: :king},
-      {5, 7} => %{colour: :white, type: :bishop},
-      {6, 7} => %{colour: :white, type: :knight},
-      {7, 7} => %{colour: :white, type: :rook}
+      {0, 7} => %{colour: :black, type: :rook},
+      {1, 7} => %{colour: :black, type: :knight},
+      {2, 7} => %{colour: :black, type: :bishop},
+      {3, 7} => %{colour: :black, type: :queen},
+      {4, 7} => %{colour: :black, type: :king},
+      {5, 7} => %{colour: :black, type: :bishop},
+      {6, 7} => %{colour: :black, type: :knight},
+      {7, 7} => %{colour: :black, type: :rook}
     }
   end
 end
