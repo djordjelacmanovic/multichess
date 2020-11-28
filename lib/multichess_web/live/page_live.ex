@@ -92,4 +92,11 @@ defmodule MultichessWeb.PageLive do
       :king -> "♚"
     end
   end
+
+  def sq_colour({c, r}) do
+    case rem(c + r, 2) do
+      0 -> :dark
+      1 -> :white
+    end
+  end
 end

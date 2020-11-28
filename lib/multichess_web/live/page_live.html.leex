@@ -6,10 +6,8 @@
       <%= for row <- 7..0 do %>
         <tr>
           <%= for col <- 0..7 do %>
-            <td class="<%= case rem(row + col, 2) do
-              0 -> :dark
-              1 -> :light
-            end %>
+            <td class="<%= sq_colour({col, row})%>
+
             <%= if @selected_pos == {col, row} do
               :selected
             end %>" phx-click="select_sq" phx-value-pos="<%= pos_to_s({col, row}) %>"><%= piece_to_unicode(@state.board[{col, row}]) %></td>

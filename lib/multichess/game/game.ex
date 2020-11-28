@@ -48,7 +48,10 @@ defmodule Multichess.Game do
       board |> Board.moves(from_p, prev_moves) |> Enum.any?(&(&1 == to_p)) |> negate ->
         {:error, "not an available move for selected piece"}
 
-      board |> Board.move(from_p, to_p) |> Map.get(:board) |> Board.is_king_checked?(turn) ->
+      board
+      |> Board.move(from_p, to_p)
+      |> Map.get(:board)
+      |> Board.is_king_checked?(turn) ->
         {:error, "king would be in check"}
 
       true ->
