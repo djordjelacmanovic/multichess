@@ -1,6 +1,7 @@
 <section class="phx-hero">
   <h3>Multichess</h3>
   <p><%= @now %></p>
+  <p>White: <%= seconds_to_str(@white_time) %> | Black: <%= seconds_to_str(@black_time) %></p>
   <table class="chess-board">
     <tbody>
       <%= for row <- 7..0 do %>

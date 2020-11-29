@@ -2,6 +2,7 @@ defmodule MultichessWeb.PageLive do
   use MultichessWeb, :live_view
   alias Multichess.Game
   alias Multichess.Game.Position
+  alias MultichessWeb.Util.Convert
 
   @impl true
   def mount(_params, _session, socket) do
@@ -9,7 +10,11 @@ defmodule MultichessWeb.PageLive do
       :timer.send_interval(1000, self(), :tick)
     end
 
-    {:ok, assign(socket, state: Game.initial(), selected_pos: nil) |> assign_current_time()}
+    {:ok,
+     assign(socket, state: Game.initial(), selected_pos: nil)
+     |> assign_current_time()
+     |> assign(black_time: 5 * 60)
+     |> assign(white_time: 5 * 60)}
   end
 
   @impl true
@@ -49,9 +54,14 @@ defmodule MultichessWeb.PageLive do
 
   @impl true
   def handle_info(:tick, socket) do
-    socket = assign_current_time(socket)
+    {:noreply, socket |> assign_current_time |> assign_player_time}
+  end
 
-    {:noreply, socket}
+  def assign_player_time(socket) do
+    case socket.assigns.state.turn do
+      :white -> assign(socket, white_time: socket.assigns.white_time - 1)
+      :black -> assign(socket, black_time: socket.assigns.black_time - 1)
+    end
   end
 
   def assign_current_time(socket) do
@@ -99,6 +109,10 @@ defmodule MultichessWeb.PageLive do
       0 -> :dark
       1 -> :white
     end
+  end
+
+  def seconds_to_str(sec) do
+    Convert.sec_to_str(sec)
   end
 
   def outcome(%{outcome: :checkmate, turn: turn}), do: "#{turn} lost, checkmate!"
