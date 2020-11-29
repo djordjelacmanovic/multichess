@@ -2,30 +2,49 @@ name: Elixir CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
-
     name: Build and test
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Elixir
-      uses: actions/setup-elixir@v1
-      with:
-        elixir-version: '1.10.3' # Define the elixir version [required]
-        otp-version: '22.3' # Define the OTP version [required]
-    - name: Restore dependencies cache
-      uses: actions/cache@v2
-      with:
-        path: deps
-        key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
-        restore-keys: ${{ runner.os }}-mix-
-    - name: Install dependencies
-      run: mix deps.get
-    - name: Run tests
-      run: mix test
+      - uses: actions/checkout@v2
+      - name: Set up Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          elixir-version: "1.10.3" # Define the elixir version [required]
+          otp-version: "22.3" # Define the OTP version [required]
+      - name: Restore dependencies cache
+        uses: actions/cache@v2
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
+      - name: Install dependencies
+        run: mix deps.get
+      - name: Run tests
+        run: mix test
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/master' # Only run this job if it is on the master branch
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - uses: mhanberg/gigalixir-action@v0.4.0
+        with:
+          GIGALIXIR_USERNAME: ${{ secrets.GIGALIXIR_USERNAME }}
+          GIGALIXIR_PASSWORD: ${{ secrets.GIGALIXIR_PASSWORD }}
+          GIGALIXIR_APP: multichess
+          SSH_PRIVATE_KEY: ${{ secrets.GIGALIXIR_SSH_PRIVATE_KEY }}
+          MIGRATIONS: false
