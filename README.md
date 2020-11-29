@@ -1,4 +1,5 @@
-![build status](https://github.com/djordjelacmanovic/multichess/workflows/Elixir%20CI/badge.svg)
+![Build Status](https://github.com/djordjelacmanovic/multichess/workflows/Elixir%20CI/badge.svg)
+[![Coverage](https://coveralls.io/repos/djordjelacmanovic/multichess/badge.svg?branch=main)](https://coveralls.io/r/djordjelacmanovic/multichess?branch=main)
 
 # Multichess
 
