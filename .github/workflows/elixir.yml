@@ -31,7 +31,7 @@ jobs:
 
   deploy:
     needs: build
-    if: github.ref == 'refs/heads/master' # Only run this job if it is on the master branch
+    if: github.ref == 'refs/heads/main'
 
     runs-on: ubuntu-latest
 
