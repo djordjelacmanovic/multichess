@@ -22,12 +22,10 @@ defmodule MultichessWeb.PageLive do
      end}
   end
 
-  def handle_event("select_sq", _, socket) when not socket.assigns.game_pid,
-    do: {:noreply, socket |> put_flash(:error, "wait for player to connect")}
-
   @impl true
   def handle_event("select_sq", %{"pos" => pos}, socket) do
-    with {:ok, pos} <- Position.parse(pos) do
+    with true <- socket.assigns.game_pid,
+         {:ok, pos} <- Position.parse(pos) do
       case socket.assigns.selected_pos do
         ^pos ->
           {:noreply,
@@ -49,6 +47,7 @@ defmodule MultichessWeb.PageLive do
           end
       end
     else
+      false -> {:noreply, socket |> put_flash(:error, "wait for a player to connect")}
       {:error, msg} -> {:noreply, socket |> put_flash(:error, msg)}
     end
   end
