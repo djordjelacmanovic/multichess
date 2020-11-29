@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build and test
+    name: Build and Test
     runs-on: ubuntu-latest
 
     steps:
@@ -30,6 +30,7 @@ jobs:
         run: mix test
 
   deploy:
+    name: Deploy to Gigalixir
     needs: build
     if: github.ref == 'refs/heads/main'
 
