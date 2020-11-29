@@ -1,0 +1,8 @@
+{
+  "skip_files": [
+    "lib/multichess_web",
+    "test/support",
+    "lib/multichess/application.ex",
+    "lib/multichess*.ex"
+  ]
+}
