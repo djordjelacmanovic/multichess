@@ -24,7 +24,7 @@ defmodule MultichessWeb.PageLive do
 
   @impl true
   def handle_event("select_sq", %{"pos" => pos}, socket) do
-    with true <- socket.assigns.game_pid,
+    with true <- !!socket.assigns.game_pid,
          {:ok, pos} <- Position.parse(pos) do
       case socket.assigns.selected_pos do
         ^pos ->
