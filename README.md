@@ -1,3 +1,5 @@
+![build status](https://github.com/djordjelacmanovic/multichess/workflows/Elixir%20CI/badge.svg)
+
 # Multichess
 
 To start your Phoenix server:
