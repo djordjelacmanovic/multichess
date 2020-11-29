@@ -29,9 +29,9 @@ defmodule Multichess.Game do
 
   def checkmate?(state), do: checked?(state) and no_moves_available?(state)
 
-  def stalemate?(state), do: no_moves_available?(state)
+  def stalemate?(state), do: no_moves_available?(state) and !checked?(state)
 
-  def no_moves_available?(state) do
+  defp no_moves_available?(state) do
     state.board
     |> Board.find(%{colour: state.turn})
     |> Enum.any?(fn {pos, _} ->
