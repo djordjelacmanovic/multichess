@@ -185,6 +185,10 @@ defmodule Multichess.Game.Board.Test do
 
       assert captured == %{type: :pawn, colour: :white}
     end
+
+    test "generates queen moves" do
+      assert Board.moves(%{{1, 0} => %{type: :queen, colour: :white}}, {1, 0})
+    end
   end
 
   describe "initial state" do
