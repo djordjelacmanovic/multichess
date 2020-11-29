@@ -3,31 +3,31 @@ defmodule MultichessWeb.PageLive do
   alias Multichess.Game
   alias Multichess.Game.Position
   alias MultichessWeb.Util.Convert
-  alias MultichessWeb.GameServer
+  alias MultichessWeb.GameLobby
 
   @impl true
   def mount(_params, _session, socket) do
     socket =
       assign(socket, state: Game.initial(), selected_pos: nil)
-      |> assign_current_time()
       |> assign(black_time: 5 * 60)
       |> assign(white_time: 5 * 60)
+      |> assign(game_pid: nil)
 
     {:ok,
-     if connected?(socket) do
-       {:ok, pid} = GenServer.start_link(GameServer, {self(), socket.assigns.state})
-
-       socket
-       |> assign(pid: pid)
+     with true <- connected?(socket),
+          {:ok, game_pid} <- GenServer.call(GameLobby, :pop) do
+       socket |> assign(game_pid: game_pid) |> assign(colour: :black)
      else
-       socket
+       _ -> socket
      end}
   end
 
+  def handle_event("select_sq", _, socket) when not socket.assigns.game_pid,
+    do: {:noreply, socket |> put_flash(:error, "wait for player to connect")}
+
   @impl true
   def handle_event("select_sq", %{"pos" => pos}, socket) do
-    with {:ok, pos} <-
-           Position.parse(pos) do
+    with {:ok, pos} <- Position.parse(pos) do
       case socket.assigns.selected_pos do
         ^pos ->
           {:noreply,
@@ -40,7 +40,7 @@ defmodule MultichessWeb.PageLive do
               {:noreply, socket |> assign(selected_pos: pos)}
 
             from_p ->
-              with {:ok, state} <- GenServer.call(socket.assigns.pid, {:move, from_p, pos}) do
+              with {:ok, state} <- GenServer.call(socket.assigns.game_pid, {:move, from_p, pos}) do
                 {:noreply, assign(socket, state: state, selected_pos: nil)}
               else
                 {:error, msg} ->
@@ -54,27 +54,22 @@ defmodule MultichessWeb.PageLive do
   end
 
   @impl true
+  def handle_cast({:join_game, game_pid}, socket) do
+    {:noreply, socket |> assign(game_pid: game_pid) |> assign(colour: :white)}
+  end
+
+  @impl true
   def handle_cast({:new_state, state}, socket) do
     {:noreply, socket |> assign(state: state)}
   end
 
   @impl true
   def handle_cast({:new_time, time}, socket) do
-    {:noreply, socket |> assign_current_time |> assign_player_time(time)}
+    {:noreply, socket |> assign_player_time(time)}
   end
 
   def assign_player_time(socket, %{white: white_time, black: black_time}) do
     socket |> assign(white_time: white_time) |> assign(black_time: black_time)
-  end
-
-  def assign_current_time(socket) do
-    now =
-      Time.utc_now()
-      |> Time.to_string()
-      |> String.split(".")
-      |> hd
-
-    assign(socket, now: now)
   end
 
   def pos_to_s({c, r}) do

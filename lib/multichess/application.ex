@@ -12,7 +12,9 @@ defmodule Multichess.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Multichess.PubSub},
       # Start the Endpoint (http/https)
-      MultichessWeb.Endpoint
+      MultichessWeb.Endpoint,
+      MultichessWeb.GameLobby
+
       # Start a worker by calling: Multichess.Worker.start_link(arg)
       # {Multichess.Worker, arg}
     ]

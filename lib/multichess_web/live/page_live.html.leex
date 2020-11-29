@@ -1,6 +1,5 @@
 <section class="phx-hero">
-  <h3>Multichess</h3>
-  <p><%= @now %></p>
+  <p><%= if !@game_pid do "Waiting for player to join" else "You are #{@colour}." end %></p>
   <p>White: <%= if @white_time != 0 do seconds_to_str(@white_time) else "out of time" end %> | Black: <%= if @black_time != 0 do seconds_to_str(@black_time) else "out of time" end %></p>
   <table class="chess-board">
     <tbody>
