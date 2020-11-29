@@ -1,16 +1,43 @@
 defmodule Multichess.Game do
   alias Multichess.Game.Board
 
-  def initial(), do: %{turn: :white, board: Board.initial_state(), moves: [], captured_pieces: []}
+  def initial(),
+    do: %{
+      turn: :white,
+      board: Board.initial_state(),
+      moves: [],
+      captured_pieces: [],
+      checked: false,
+      outcome: nil
+    }
 
   def move(game_state, from_p, to_p) do
-    %{board: board, turn: turn} = game_state
+    %{board: board, turn: turn, outcome: outcome} = game_state
 
-    case Board.piece(board, from_p) do
-      nil -> {:error, "no piece at position"}
-      %{colour: ^turn} -> exec_move(game_state, from_p, to_p)
-      _ -> {:error, "not your turn"}
+    if outcome do
+      {:error, "game has finished"}
+    else
+      case Board.piece(board, from_p) do
+        nil -> {:error, "no piece at position"}
+        %{colour: ^turn} -> exec_move(game_state, from_p, to_p)
+        _ -> {:error, "not your turn"}
+      end
     end
+  end
+
+  def checked?(%{board: board, turn: turn}), do: board |> Board.is_king_checked?(turn)
+
+  def checkmate?(state), do: checked?(state) and no_moves_available?(state)
+
+  def stalemate?(state), do: no_moves_available?(state)
+
+  def no_moves_available?(state) do
+    state.board
+    |> Board.find(%{colour: state.turn})
+    |> Enum.any?(fn {pos, _} ->
+      state.board |> Board.moves(pos) |> Enum.any?(&match?({:ok, _}, valid_move?(state, pos, &1)))
+    end)
+    |> negate
   end
 
   defp exec_move(game_state, from_p, to_p) do
@@ -24,17 +51,31 @@ defmodule Multichess.Game do
 
   defp update_game_state(
          %{board: board, captured: captured, piece: piece, start_p: start_p, end_p: end_p},
-         game_state
+         %{moves: moves, turn: turn, captured_pieces: captured_pieces}
        ) do
     %{
       board: board,
       moves:
-        (game_state
-         |> Map.get(:moves)) ++
+        moves ++
           [%{start_p: start_p, end_p: end_p, piece: piece}],
-      turn: game_state |> Map.get(:turn) |> flip_turn(),
-      captured_pieces: game_state |> Map.get(:captured_pieces) |> append_if_not_nil(captured)
+      turn: turn |> flip_turn(),
+      captured_pieces: captured_pieces |> append_if_not_nil(captured)
     }
+    |> update_outcome()
+  end
+
+  defp update_outcome(state) do
+    state
+    |> Map.put(:checked, checked?(state))
+    |> Map.put(:outcome, outcome(state))
+  end
+
+  defp outcome(state) do
+    cond do
+      checkmate?(state) -> :checkmate
+      stalemate?(state) -> :stalemate
+      true -> nil
+    end
   end
 
   defp append_if_not_nil(list, nil), do: list

@@ -36,6 +36,11 @@ defmodule Multichess.Game.Board do
     |> Enum.filter(fn {_, piece} -> match?(%{type: ^type, colour: ^colour}, piece) end)
   end
 
+  def find(board, %{colour: colour}) do
+    board
+    |> Enum.filter(fn {_, piece} -> match?(%{colour: ^colour}, piece) end)
+  end
+
   def is_king_checked?(board, colour) do
     board
     |> find(%{type: :king, colour: colour})

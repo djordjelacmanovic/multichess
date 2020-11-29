@@ -14,7 +14,8 @@ defmodule MultichessWeb.PageLive do
 
   @impl true
   def handle_event("select_sq", %{"pos" => pos}, socket) do
-    with {:ok, pos} <- Position.parse(pos) do
+    with {:ok, pos} <-
+           Position.parse(pos) do
       case socket.assigns.selected_pos do
         ^pos ->
           {:noreply,
@@ -64,7 +65,7 @@ defmodule MultichessWeb.PageLive do
   end
 
   def pos_to_s({c, r}) do
-    Integer.to_string(c) <> "," <> Integer.to_string(r)
+    "#{c},#{r}"
   end
 
   def pos_to_s(nil), do: nil
@@ -99,4 +100,10 @@ defmodule MultichessWeb.PageLive do
       1 -> :white
     end
   end
+
+  def outcome(%{outcome: :checkmate, turn: turn}), do: "#{turn} lost, checkmate!"
+
+  def outcome(%{outcome: :stalemate}), do: "Tie by stalemate!"
+
+  def outcome(_), do: nil
 end

@@ -16,6 +16,7 @@
       <% end %>
     </tbody>
   </table>
+  <h5><%= outcome(@state) %></h5>
   <h3>Turn: <%= @state.turn %></h3>
   <h4>Captures:</h4>
   <%= for c <- @state.captured_pieces do %>
