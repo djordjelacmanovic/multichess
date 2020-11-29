@@ -17,9 +17,12 @@ defmodule MultichessWeb.GameServer do
 
     with 0 <- time[turn] - 1 do
       %{state: game_state} = server_state
+      game_state = game_state |> Map.put(:outcome, :out_of_time)
       GenServer.cast(ppid, {:new_time, time |> Map.put(turn, 0)})
-      GenServer.cast(ppid, {:new_state, game_state |> Map.put(:outcome, :out_of_time)})
-      {:noreply, server_state |> Map.put(:time, Map.put(time, turn, 0))}
+      GenServer.cast(ppid, {:new_state, game_state})
+
+      {:noreply,
+       server_state |> Map.put(:time, Map.put(time, turn, 0)) |> Map.put(:state, game_state)}
     else
       t when t < 0 ->
         {:noreply, server_state}
