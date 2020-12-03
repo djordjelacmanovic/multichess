@@ -2,6 +2,9 @@ defmodule MultichessWeb.GameServer do
   use GenServer
   alias Multichess.Game
 
+  # 5 minutes
+  @timeout 300_000
+
   def create(sockets) do
     GenServer.start_link(__MODULE__, {sockets, Game.initial()})
   end
@@ -51,6 +54,11 @@ defmodule MultichessWeb.GameServer do
         pids |> Enum.each(&GenServer.cast(&1, {:new_time, new_time}))
         {:noreply, server_state |> Map.put(:time, new_time)}
     end
+  end
+
+  @impl true
+  def handle_info(:timeout, state) do
+    {:stop, :normal, state}
   end
 
   @impl true
