@@ -3,12 +3,9 @@ defmodule Multichess.Game.King do
 
   def moves(board, {c, r}, previous_moves \\ []) do
     moves =
-      Enum.reduce(-1..1, [], fn i, acc ->
-        Enum.reduce(-1..1, [], fn j, in_acc ->
-          [{c + i, r + j} | in_acc]
-        end) ++ acc
-      end)
-      |> Enum.filter(fn {cx, rx} -> cx != c or rx != r end)
+      for(i <- -1..1, j <- -1..1, do: {i, j})
+      |> Enum.reject(&(&1 == {0, 0}))
+      |> Enum.reduce([], fn {i, j}, acc -> [{c + i, r + j} | acc] end)
 
     Board.generate_moves(board, {c, r}, moves) ++ castling(board, {c, r}, previous_moves)
   end
