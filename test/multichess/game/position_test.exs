@@ -1,6 +1,7 @@
 defmodule Multichess.Game.Position.Test do
   alias Multichess.Game.Position
   use ExUnit.Case, async: true
+  doctest Position
 
   describe "parse" do
     test "parsing correct string returns {:ok, pos}" do
