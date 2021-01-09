@@ -1,8 +1,15 @@
 defmodule MultichessWeb.GameLobby do
   use GenServer
+  alias Phoenix.PubSub
 
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, [], name: MultichessWeb.GameLobby)
+  end
+
+  def handle_info({:leave, pid}, pids) do
+    IO.puts("Lobby handle disconnect")
+    IO.inspect(pid)
+    {:noreply, Enum.reject(pids, &(&1 == pid))}
   end
 
   def handle_call(:pop, {from_pid, _}, []) do
@@ -16,6 +23,7 @@ defmodule MultichessWeb.GameLobby do
   end
 
   def init(sockets \\ []) do
+    :ok = PubSub.subscribe(Multichess.PubSub, "connections")
     {:ok, sockets}
   end
 end

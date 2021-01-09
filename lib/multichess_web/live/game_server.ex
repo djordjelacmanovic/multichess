@@ -1,6 +1,7 @@
 defmodule MultichessWeb.GameServer do
   use GenServer
   alias Multichess.Game
+  alias Phoenix.PubSub
 
   # 5 minutes
   @timeout 300_000
@@ -31,6 +32,28 @@ defmodule MultichessWeb.GameServer do
 
   defp is_correct_turn?(%{state: %{turn: :black}, pids: pids}, from) do
     List.last(pids) == from
+  end
+
+  def handle_info(
+        {:leave, pid},
+        sstate = %{state: state = %{outcome: nil}, pids: pids = [wpid, bpid]}
+      ) do
+    IO.puts("Server handle disconnect")
+    IO.inspect(pid)
+
+    new_state =
+      case pid do
+        ^wpid -> Map.put(state, :outcome, :white_left)
+        ^bpid -> Map.put(state, :outcome, :black_left)
+      end
+
+    Enum.reject(pids, &(&1 == pid)) |> hd() |> GenServer.cast({:new_state, new_state})
+
+    {:noreply, %{sstate | state: new_state}}
+  end
+
+  def handle_info({:leave, _pid}, sstate) do
+    {:noreply, sstate}
   end
 
   @impl true
@@ -64,6 +87,7 @@ defmodule MultichessWeb.GameServer do
   @impl true
   def init({pids, init_state}) do
     :timer.send_interval(1000, self(), :tick)
+    :ok = PubSub.subscribe(Multichess.PubSub, "connections")
     {:ok, %{pids: pids, state: init_state, time: %{white: 5 * 60, black: 5 * 60}}}
   end
 end

@@ -108,13 +108,29 @@ defmodule MultichessWeb.PageLive do
     end
   end
 
+  @impl true
+  def terminate(reason, _socket) do
+    if disconnected?(reason) do
+      Phoenix.PubSub.broadcast!(Multichess.PubSub, "connections", {:leave, self()})
+    end
+  end
+
+  defp disconnected?(reason) do
+    case reason do
+      :shutdown -> true
+      {:shutdown, shutdown_reason} when shutdown_reason in [:left, :closed] -> true
+      _other -> false
+    end
+  end
+
   def seconds_to_str(sec) do
     Convert.sec_to_str(sec)
   end
 
   def outcome(%{outcome: :out_of_time, turn: turn}), do: "#{turn} lost, ran out of time!"
   def outcome(%{outcome: :checkmate, turn: turn}), do: "#{turn} lost, checkmate!"
-
+  def outcome(%{outcome: :white_left}), do: "White lost, ran away!"
+  def outcome(%{outcome: :black_left}), do: "Black lost, ran away!"
   def outcome(%{outcome: :stalemate}), do: "Tie by stalemate!"
 
   def outcome(_), do: nil
